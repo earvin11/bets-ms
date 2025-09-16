@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { RedisModule } from './redis/infraestructure/redis.module';
 import { envs } from './config/envs';
 import { BullModule } from '@nestjs/bullmq';
+import { BetsModule } from './bets/infraestructure/bets.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { BullModule } from '@nestjs/bullmq';
         password: envs.redisPassword,
       },
     }),
+    BetsModule,
     RedisModule,
   ],
   controllers: [AppController],
