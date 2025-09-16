@@ -24,10 +24,10 @@ interface CreateBetDto {
 @Injectable()
 export class CreateBetUseCase {
   constructor(
-    private readonly redisRpcPort: RedisRpcPort,
     private readonly currencyCachePort: CurrencyCachePort,
     private readonly operatorCachePort: OperatorCachePort,
     private readonly playerCachePort: PlayerCachePort,
+    private readonly redisRpcPort: RedisRpcPort,
     private readonly rouletteCachePort: RouletteCachePort,
   ) {}
 
@@ -76,9 +76,26 @@ export class CreateBetUseCase {
       ),
     ]);
 
-    if (!currencyData) return; // emitir error
-    if (!operator) return;
-    if (!roulette) return;
-    if (!player) return;
+    if (!currencyData) {
+      this.emitError(channelPlayerSocketPlayer, 'Currency not found');
+      return;
+    }
+    if (!operator) {
+      this.emitError(channelPlayerSocketPlayer, 'Operator not found');
+      return;
+    }
+    if (!roulette) {
+      this.emitError(channelPlayerSocketPlayer, 'Roulette not found');
+      return;
+    }
+    if (!player) {
+      this.emitError(channelPlayerSocketPlayer, 'Player not found');
+      return;
+    }
   }
+
+  private emitError = (channel: string, msg: string, error?: string) => {
+    const dataToEmit = { channel, msg, error };
+    this.redisRpcPort.publish('bet:err', JSON.stringify(dataToEmit));
+  };
 }
