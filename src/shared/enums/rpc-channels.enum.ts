@@ -8,4 +8,6 @@ export enum RpcChannels {
   GET_PLAYER_BY_ID = 'get-player-by-id',
   GET_CURRENCY_BY_SHORT = 'get-currency-by-short',
   GET_OPERTOR_LIMIT_BY_CURRENCY_AND_ROULETTE = 'get-operator-limit',
+
+  CREATE_BET = 'create-bet',
 }

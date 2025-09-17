@@ -19,6 +19,7 @@ import { OperatorLimitCachePort } from '../domain/operator-limit-cache.port';
 import { ValidateLimitBet } from '../application/validate-limits-bet.helper';
 import { WalletDebit } from './implementations/wallet-debit.implementation';
 import { WalletDebitPort } from '../domain/wallet-debit.port';
+import { CreateBetProcessor } from './processors/create-bet.processor';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { WalletDebitPort } from '../domain/wallet-debit.port';
   ],
   providers: [
     BetHelpers,
+    CreateBetProcessor,
     CreateBetUseCase,
     CurrencyCache,
     OperatorCache,
@@ -65,7 +67,7 @@ import { WalletDebitPort } from '../domain/wallet-debit.port';
     WalletDebit,
     {
       provide: WalletDebitPort,
-      useExisting: WalletDebit
+      useExisting: WalletDebit,
     },
   ],
 })
