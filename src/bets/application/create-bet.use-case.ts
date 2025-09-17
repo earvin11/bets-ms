@@ -20,6 +20,7 @@ import { WalletDebitPort } from '../domain/wallet-debit.port';
 import { LoggerPort } from 'src/logging/domain/logger.port';
 
 interface CreateBetDto {
+  roundId: string;
   operatorId: string;
   roulette: string;
   currency: string;
@@ -149,7 +150,7 @@ export class CreateBetUseCase {
         currency: player.currency,
         player: player._id!,
         roulette: roulette._id!,
-        round: '1', //TODO: roundId
+        round: data.roundId,
         type: 'bet',
         totalAmount,
         totalAmountPayoff: 0,
