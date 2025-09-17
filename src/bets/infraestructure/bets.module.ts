@@ -13,6 +13,10 @@ import { OperatorCachePort } from '../domain/operator-cache.port';
 import { PlayerCachePort } from '../domain/player-cache.port';
 import { RouletteCachePort } from '../domain/roulette-cache.port';
 import { CreateBetUseCase } from '../application/create-bet.use-case';
+import { BetHelpers } from '../application/bet-helpers';
+import { OperatorLimitCache } from './implementations/operator-limit.implementation';
+import { OperatorLimitCachePort } from '../domain/operator-limit-cache.port';
+import { ValidateLimitBet } from '../application/validate-limits-bet.helper';
 
 @Module({
   imports: [
@@ -28,9 +32,11 @@ import { CreateBetUseCase } from '../application/create-bet.use-case';
     RedisModule,
   ],
   providers: [
+    BetHelpers,
     CreateBetUseCase,
     CurrencyCache,
     OperatorCache,
+    OperatorLimitCache,
     PlayerCache,
     RouletteCache,
     {
@@ -42,6 +48,10 @@ import { CreateBetUseCase } from '../application/create-bet.use-case';
       useExisting: OperatorCache,
     },
     {
+      provide: OperatorLimitCachePort,
+      useExisting: OperatorLimitCache
+    },
+    {
       provide: PlayerCachePort,
       useExisting: PlayerCache,
     },
@@ -49,6 +59,7 @@ import { CreateBetUseCase } from '../application/create-bet.use-case';
       provide: RouletteCachePort,
       useExisting: RouletteCache,
     },
+    ValidateLimitBet,
   ],
 })
 export class BetsModule {}
