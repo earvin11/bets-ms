@@ -13,14 +13,17 @@ import {
   OperatorEntity,
   PlayerEntity,
   RouletteEntity,
+  RoundEntity,
 } from 'src/shared/interfaces';
 import { ValidateLimitBet } from './validate-limits-bet.helper';
 import { Bet } from '../domain/bet';
 import { WalletDebitPort } from '../domain/wallet-debit.port';
 import { LoggerPort } from 'src/logging/domain/logger.port';
+import { QueuesPort } from 'src/redis/domain/queues.port';
+import { QueueName } from 'src/shared/enums/queue-names.enum';
 
 interface CreateBetDto {
-  roundId: string;
+  round: RoundEntity;
   operatorId: string;
   roulette: string;
   currency: string;
@@ -42,6 +45,7 @@ export class CreateBetUseCase {
     private readonly loggerPort: LoggerPort,
     private readonly operatorCachePort: OperatorCachePort,
     private readonly playerCachePort: PlayerCachePort,
+    private readonly queuePort: QueuesPort,
     private readonly redisRpcPort: RedisRpcPort,
     private readonly rouletteCachePort: RouletteCachePort,
     private readonly validateLimitBet: ValidateLimitBet,
@@ -150,7 +154,7 @@ export class CreateBetUseCase {
         currency: player.currency,
         player: player._id!,
         roulette: roulette._id!,
-        round: data.roundId,
+        round: data.round._id!,
         type: 'bet',
         totalAmount,
         totalAmountPayoff: 0,
@@ -236,6 +240,27 @@ export class CreateBetUseCase {
       if (balanceWallet && !isNaN(+balanceWallet)) userBalance = +balanceWallet;
 
       //TODO: mandar a crear transaccion y profit
+      const transaction = {
+        bet: bet,
+        player: player,
+        round: data.round,
+        game: roulette,
+        type: 'debit',
+        amount: totalAmount,
+        amountExchangeDollar: bet.totalAmount * currencyData.usdExchange,
+        platform: data.platform,
+        playerIp: data.player_ip ? data.player_ip : '131232',
+        playerCountry: data.playerCountry ? data.playerCountry : 'VEN',
+        userBalance,
+        userAgent: data.userAgent,
+        currencyExchangeDollar: currencyData.usdExchange,
+        usersOnline: 10,
+      };
+
+      await this.queuePort.addJob(
+        QueueName.CREATE_DEBIT_TRANSACTION,
+        transaction,
+      );
 
       // si todo sale bien retorna esto
       const dataToEmit = {

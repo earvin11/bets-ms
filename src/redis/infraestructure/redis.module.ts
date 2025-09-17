@@ -24,22 +24,13 @@ const redisProvider: Provider = {
 
 @Module({
   imports: [
-    BullModule.registerQueue(
-      {
-        name: QueueName.CALCULATE_JACKPOT,
-        defaultJobOptions: {
-          removeOnComplete: true,
-          removeOnFail: 5,
-        },
+    BullModule.registerQueue({
+      name: QueueName.CREATE_DEBIT_TRANSACTION,
+      defaultJobOptions: {
+        removeOnComplete: true,
+        removeOnFail: 5,
       },
-      {
-        name: QueueName.ROUND_SET_JACKPOT,
-        defaultJobOptions: {
-          removeOnComplete: true,
-          removeOnFail: 5,
-        },
-      },
-    ),
+    }),
     LoggerModule,
   ],
   providers: [

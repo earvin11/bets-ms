@@ -160,3 +160,21 @@ export interface PlayerEntity {
   tokenWallet: string;
   WL: string;
 }
+
+export interface RoundEntity {
+  _id?: string;
+  code: string;
+  start_date: Date;
+  end_date: Date;
+  end_recording_date: Date;
+  jackpot_values: any[];
+  result: number;
+  providerId: string;
+  roulette: string;
+  open: boolean;
+  number: number;
+  identifierNumber: number;
+  crupier: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}

@@ -6,4 +6,5 @@ export enum QueueName {
   ROUND_CLOSED = 'round-closed',
   CALCULATE_JACKPOT = 'calculate-jackpot',
   PAY_BETS = 'pay-bets',
+  CREATE_DEBIT_TRANSACTION = 'create-debit-transaction',
 }
