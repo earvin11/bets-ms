@@ -15,6 +15,9 @@ import {
   RouletteEntity,
 } from 'src/shared/interfaces';
 import { ValidateLimitBet } from './validate-limits-bet.helper';
+import { Bet } from '../domain/bet';
+import { WalletDebitPort } from '../domain/wallet-debit.port';
+import { LoggerPort } from 'src/logging/domain/logger.port';
 
 interface CreateBetDto {
   operatorId: string;
@@ -35,11 +38,13 @@ export class CreateBetUseCase {
   constructor(
     private readonly betHelpers: BetHelpers,
     private readonly currencyCachePort: CurrencyCachePort,
+    private readonly loggerPort: LoggerPort,
     private readonly operatorCachePort: OperatorCachePort,
     private readonly playerCachePort: PlayerCachePort,
     private readonly redisRpcPort: RedisRpcPort,
     private readonly rouletteCachePort: RouletteCachePort,
     private readonly validateLimitBet: ValidateLimitBet,
+    private readonly walletDebitPort: WalletDebitPort,
   ) {}
 
   async run(data: CreateBetDto) {
@@ -137,6 +142,74 @@ export class CreateBetUseCase {
       this.emitError(channelPlayerSocketPlayer, msg!);
       return;
     }
+
+    const bet = new Bet({
+      bet: data.bet,
+      currency: player.currency,
+      player: player._id!,
+      roulette: roulette._id!,
+      round: '1', //TODO: roundId
+      type: 'bet',
+      totalAmount,
+      totalAmountPayoff: 0,
+    });
+
+    const objWallet = {
+      user_id: String(data.user_id),
+      amount: totalAmount,
+      round_id: data.identifierNumber,
+      bet_id: bet.uuid!,
+      game_id: data.roulette,
+      bet_code: bet.transactionId!,
+      bet_date: new Date(),
+      currency: data.currency,
+      platform: 'desktop',
+      transactionType: 'bet' as const,
+    };
+
+    let walletResponse;
+    const startTime = Date.now();
+    try {
+      walletResponse = await this.walletDebitPort.sendDebit(
+        operator.endpointBet,
+        objWallet,
+      );
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      this.loggerPort.log('wallet debit success', {
+        objWallet,
+        walletResponse,
+        duration,
+      });
+
+      if (!walletResponse.data.ok) {
+        const log = {
+          type: 'error',
+          response: {
+            message: `Error en la apuesta ${data.roulette}-${data.player}`,
+            ...walletResponse.data,
+          },
+          request: {
+            ...objWallet,
+            url: operator.endpointBet,
+          },
+        };
+
+        this.emitError(
+          channelPlayerSocketPlayer,
+          `Error in wallet response: ${walletResponse.data.msg ?? walletResponse.data.mensaje ?? walletResponse.data.message}`,
+          'Error in wallet',
+        );
+
+        this.loggerPort.error(
+          'Wallet debit error',
+          JSON.stringify(log),
+        );
+
+        return;
+      }
+    } catch (error) {}
   }
 
   private emitError = (channel: string, msg: string, error?: string) => {

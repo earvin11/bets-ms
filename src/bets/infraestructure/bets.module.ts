@@ -17,6 +17,8 @@ import { BetHelpers } from '../application/bet-helpers';
 import { OperatorLimitCache } from './implementations/operator-limit.implementation';
 import { OperatorLimitCachePort } from '../domain/operator-limit-cache.port';
 import { ValidateLimitBet } from '../application/validate-limits-bet.helper';
+import { WalletDebit } from './implementations/wallet-debit.implementation';
+import { WalletDebitPort } from '../domain/wallet-debit.port';
 
 @Module({
   imports: [
@@ -49,7 +51,7 @@ import { ValidateLimitBet } from '../application/validate-limits-bet.helper';
     },
     {
       provide: OperatorLimitCachePort,
-      useExisting: OperatorLimitCache
+      useExisting: OperatorLimitCache,
     },
     {
       provide: PlayerCachePort,
@@ -60,6 +62,11 @@ import { ValidateLimitBet } from '../application/validate-limits-bet.helper';
       useExisting: RouletteCache,
     },
     ValidateLimitBet,
+    WalletDebit,
+    {
+      provide: WalletDebitPort,
+      useExisting: WalletDebit
+    },
   ],
 })
 export class BetsModule {}
